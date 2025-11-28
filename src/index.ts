@@ -24,7 +24,7 @@ dotenv.config();
 app.use(express.json());
 app.use(
     cors({
-        origin: ["https://lamine-sport.vercel.app/"],
+        origin: ["https://lamine-sport.vercel.app"],
         credentials: true,
     })
 );
@@ -121,4 +121,5 @@ app.use("/api/v1/template", templateRouter);
 app.listen(port, () => {
     console.log(`Server running on port:${port}`);
 });
+
 
