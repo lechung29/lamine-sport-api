@@ -281,7 +281,7 @@ const requestPasswordRecovery: RequestHandler = async (req: Request, res: Respon
 
         const generationToken = uuidv4();
 
-        const resetPasswordLink = `http://localhost:5173/recovery-password?token=${generationToken}&customerEmail=${validCustomer.email}`;
+        const resetPasswordLink = `https://lamine-sport.vercel.app/recovery-password?token=${generationToken}&customerEmail=${validCustomer.email}`;
 
         const mail_configs = {
             from: process.env.MY_EMAIL,
@@ -664,3 +664,4 @@ export {
     requestPasswordRecovery,
     logoutCustomer,
 };
+
