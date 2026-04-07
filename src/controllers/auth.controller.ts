@@ -265,7 +265,7 @@ const requestPasswordRecovery: RequestHandler = async (req, res) => {
     const existingOtp = await PRTokens.findOne({ customerEmail: email });
     if (existingOtp) {
         return res.status(200).send({
-            requestStatus: IResponseStatus.Success,
+            status: IResponseStatus.Success,
             message: "Gửi mã OTP thành công",
         });
     }
@@ -563,13 +563,13 @@ const requestPasswordRecovery: RequestHandler = async (req, res) => {
         });
 
         return res.status(200).send({
-            requestStatus: IResponseStatus.Success,
+            status: IResponseStatus.Success,
             message: "Send OTP successfully",
         });
     } catch (error) {
         await PRTokens.deleteOne({ customerEmail: email, token: generationToken }).catch(() => {});
         return res.status(500).send({
-            requestStatus: IResponseStatus.Error,
+            status: IResponseStatus.Error,
             message: "Có lỗi xảy ra khi gửi mã xác nhận, vui lòng thử lại",
         });
     }
