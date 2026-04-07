@@ -250,7 +250,7 @@ const refreshToken: RequestHandler = async (req: Request, res: Response, NextFun
 
 //#region request password recovery
 
-const requestPasswordRecovery: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+const requestPasswordRecovery: RequestHandler = async (req, res) => {
     const { email } = req.body;
 
     const validCustomer = await Users.findOne({ email });
@@ -258,7 +258,7 @@ const requestPasswordRecovery: RequestHandler = async (req: Request, res: Respon
         return res.status(400).send({
             status: IResponseStatus.Error,
             fieldError: "email",
-            message: "Địa chỉ email bạn đã nhập không liên kết với bất kỳ tài khoản nào. Vui lòng kiểm tra lại email của bạn hoặc đăng ký nếu bạn chưa có tài khoản",
+            message: "Địa chỉ email bạn đã nhập không liên kết với bất kỳ tài khoản nào.",
         });
     }
 
@@ -270,20 +270,28 @@ const requestPasswordRecovery: RequestHandler = async (req: Request, res: Respon
         });
     }
 
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.MY_EMAIL,
+            pass: process.env.MY_PASSWORD,
+        },
+    });
+
+    const url = process.env.CLIENT_URL || "http://localhost:5173";
+
+    const generationToken = uuidv4();
+    const resetPasswordLink = `${url}/recovery-password?token=${generationToken}&customerEmail=${validCustomer.email}`;
+
+    const newOtp = new PRTokens({
+        token: generationToken,
+        customerEmail: email,
+    });
+
     try {
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.MY_EMAIL,
-                pass: process.env.MY_PASSWORD,
-            },
-        });
+        await newOtp.save();
 
-        const generationToken = uuidv4();
-
-        const resetPasswordLink = `https://lamine-sport.vercel.app/recovery-password?token=${generationToken}&customerEmail=${validCustomer.email}`;
-
-        const mail_configs = {
+        await transporter.sendMail({
             from: process.env.MY_EMAIL,
             to: email,
             subject: "Lamine Sport - Khôi phục mật khẩu",
@@ -552,31 +560,17 @@ const requestPasswordRecovery: RequestHandler = async (req: Request, res: Respon
                     </div>
                 </body>
                 </html>`,
-        };
+        });
 
-        transporter.sendMail(mail_configs, async function (error: any, info: any) {
-            if (error) {
-                return res.status(500).send({
-                    requestStatus: IResponseStatus.Error,
-                    message: "Có lỗi xảy ra khi gửi mã xác nhận, vui lòng thử lại",
-                });
-            }
-            const newOtp = new PRTokens({
-                token: generationToken,
-                customerEmail: email,
-            });
-
-            await newOtp.save();
-
-            return res.status(200).send({
-                requestStatus: IResponseStatus.Success,
-                message: "Send OTP successfully",
-            });
+        return res.status(200).send({
+            requestStatus: IResponseStatus.Success,
+            message: "Send OTP successfully",
         });
     } catch (error) {
+        await PRTokens.deleteOne({ customerEmail: email, token: generationToken }).catch(() => {});
         return res.status(500).send({
             requestStatus: IResponseStatus.Error,
-            message: "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau",
+            message: "Có lỗi xảy ra khi gửi mã xác nhận, vui lòng thử lại",
         });
     }
 };
