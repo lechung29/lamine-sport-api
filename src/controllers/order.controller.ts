@@ -82,6 +82,7 @@ const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
 
         await Orders.findByIdAndUpdate(matchedOrder._id, {
             paymentStatus: PaymentStatus.Paid,
+            orderStatus: OrderStatus.Processing,
             paidAt: new Date(),
             transactionRef: String(payload.id || payload.referenceCode || ""),
         });
