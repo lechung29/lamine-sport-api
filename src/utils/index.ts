@@ -3,7 +3,7 @@
 import Orders, { OrderStatus } from "../models/orders/orders.model";
 
 export const generateUniqueOrderCode = async (): Promise<string> => {
-    const prefix = "DH_";
+    const prefix = "DH";
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const length = 8;
 
