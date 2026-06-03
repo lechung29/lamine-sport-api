@@ -20,6 +20,7 @@ export enum PaymentStatus {
     Paid,
     Failed,
     Cancelled,
+    PendingPayment
 }
 
 export interface IOrderItem extends Document {

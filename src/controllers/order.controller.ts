@@ -233,7 +233,7 @@ const createOrder: RequestHandler = async (req: AuthenticatedRequest, res: Respo
         orderItems: validatedOrderItems,
         shippingInfo,
         paymentMethod,
-        paymentStatus: PaymentStatus.Pending,
+        paymentStatus: paymentMethod === IOrderPayment.Transfer ? PaymentStatus.PendingPayment : PaymentStatus.Pending,
         totalPrice,
         productsFees,
         shippingFees,
