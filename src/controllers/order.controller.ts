@@ -299,27 +299,28 @@ const getMyOrders: RequestHandler = async (req: AuthenticatedRequest, res: Respo
         return res.status(200).send({
             status: IResponseStatus.Success,
             message: "Lấy danh sách đơn hàng thành công!",
-            data: orders.map((order) => {
-                const responseData: any = {
-                    order,
-                };
-                if (order.paymentMethod === IOrderPayment.Transfer && order.paymentStatus === PaymentStatus.PendingPayment) {
-                    const qrUrl = buildSePayQrUrl({
-                        amount: order.totalPrice,
-                        orderCode: order.orderCode,
-                    });
+            // data: orders.map((order) => {
+            //     const responseData: any = {
+            //         order,
+            //     };
+            //     if (order.paymentMethod === IOrderPayment.Transfer && order.paymentStatus === PaymentStatus.PendingPayment) {
+            //         const qrUrl = buildSePayQrUrl({
+            //             amount: order.totalPrice,
+            //             orderCode: order.orderCode,
+            //         });
 
-                    responseData.qrUrl = qrUrl;
-                    responseData.orderCode = order.orderCode;
-                    responseData.transferContent = buildSePayContent(order.orderCode);
-                    responseData.bankInfo = {
-                        bankCode: process.env.SEPAY_BANK_CODE,
-                        accountNumber: process.env.SEPAY_ACCOUNT_NUMBER,
-                        accountName: process.env.SEPAY_ACCOUNT_NAME,
-                    };
-                }
-                return responseData;
-            }),
+            //         responseData.qrUrl = qrUrl;
+            //         responseData.orderCode = order.orderCode;
+            //         responseData.transferContent = buildSePayContent(order.orderCode);
+            //         responseData.bankInfo = {
+            //             bankCode: process.env.SEPAY_BANK_CODE,
+            //             accountNumber: process.env.SEPAY_ACCOUNT_NUMBER,
+            //             accountName: process.env.SEPAY_ACCOUNT_NAME,
+            //         };
+            //     }
+            //     return responseData;
+            // }),
+            data: orders,
         });
     } catch (error) {
         console.error("Lỗi khi lấy đơn hàng của người dùng:", error);
