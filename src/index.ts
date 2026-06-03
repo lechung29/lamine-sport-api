@@ -20,18 +20,16 @@ import templateRouter from "./routes/templateRoutes";
 
 const app = express();
 
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    "http://localhost:5173",
-    "http://localhost:3000",
-].filter(Boolean) as string[];
-
-app.use(express.json());
+const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:5173", "http://localhost:3000"].filter(Boolean) as string[];
 app.use(
     cors({
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) return callback(null, true);
+            return callback(new Error("Not allowed by CORS"));
+        },
         credentials: true,
-    })
+    }),
 );
 
 app.use(cookieParser());
@@ -53,8 +51,8 @@ app.use("/api/v1/discount", discountRoutes);
 app.use("/api/v1/search-history", searchHistoryRoutes);
 app.use("/api/v1/template", templateRouter);
 
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+app.get("/health", (_req, res) => {
+    res.status(200).send("OK");
 });
 
 app.listen(port, () => {

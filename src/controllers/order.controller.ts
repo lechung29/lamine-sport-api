@@ -37,55 +37,48 @@ const restoreOrderInventory = async (order: any) => {
     }
 };
 
-// Webhook nhận từ SePay khi có giao dịch thành công
 const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
     try {
-        // Xác thực API Key từ header Authorization
-        const authHeader = req.headers["authorization"] || "";
-        const apiKey = authHeader.replace("Apikey ", "").trim();
+        const authHeader = (req.headers["authorization"] || "") as string;
+        const apiKey = authHeader.startsWith("Apikey ") ? authHeader.slice("Apikey ".length).trim() : authHeader.trim();
 
         if (!verifySePayWebhook(apiKey)) {
+            console.warn("SePay webhook: Unauthorized request, apiKey không khớp");
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
 
         const payload: SePayWebhookPayload = req.body;
 
-        // Chỉ xử lý giao dịch tiền VÀO
         if (payload.transferType !== "in") {
             return res.status(200).json({ success: true, message: "Ignored outgoing transfer" });
         }
 
-        // Lấy nội dung chuyển khoản để tìm orderCode
-        const content = (payload.content || payload.description || "").toUpperCase();
+        const content = (payload.content || payload.description || "").toUpperCase().trim();
 
-        // Tìm đơn hàng dựa trên nội dung chuyển khoản chứa "LAMINE{orderCode}"
-        const allPendingOrders = await Orders.find({
-            paymentMethod: IOrderPayment.Transfer,
-            paymentStatus: PaymentStatus.Pending,
-        }).select("orderCode totalPrice paymentStatus");
-
-        let matchedOrder: any = null;
-
-        for (const order of allPendingOrders) {
-            const expectedContent = buildSePayContent(order.orderCode).toUpperCase();
-            if (content.includes(expectedContent)) {
-                matchedOrder = order;
-                break;
-            }
+        const orderCodeMatch = content.match(/LAMINE\s+SPORT\s+([A-Z0-9]+)/i);
+        if (!orderCodeMatch) {
+            console.log(`SePay webhook: Không tìm thấy orderCode trong nội dung: "${content}"`);
+            return res.status(200).json({ success: true, message: "No order code in content" });
         }
 
+        const orderCode = orderCodeMatch[1].toUpperCase();
+
+        const matchedOrder = await Orders.findOne({
+            orderCode,
+            paymentMethod: IOrderPayment.Transfer,
+            paymentStatus: PaymentStatus.Pending,
+        }).select("orderCode totalPrice paymentStatus _id");
+
         if (!matchedOrder) {
-            // Không tìm thấy đơn hàng phù hợp — vẫn trả 200 để SePay không retry
+            console.log(`SePay webhook: Không tìm thấy đơn pending với orderCode "${orderCode}"`);
             return res.status(200).json({ success: true, message: "No matching order found" });
         }
 
-        // Kiểm tra số tiền chuyển đúng không
         if (Number(payload.transferAmount) < Number(matchedOrder.totalPrice)) {
             console.warn(`SePay: Số tiền không khớp cho đơn ${matchedOrder.orderCode}. Nhận: ${payload.transferAmount}, Cần: ${matchedOrder.totalPrice}`);
             return res.status(200).json({ success: true, message: "Amount mismatch, ignored" });
         }
 
-        // Cập nhật trạng thái thanh toán
         await Orders.findByIdAndUpdate(matchedOrder._id, {
             paymentStatus: PaymentStatus.Paid,
             paidAt: new Date(),
@@ -97,12 +90,10 @@ const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
         return res.status(200).json({ success: true, message: "Payment confirmed" });
     } catch (error) {
         console.error("Lỗi SePay Webhook:", error);
-        // Vẫn trả 200 để SePay không retry liên tục
         return res.status(200).json({ success: false, message: "Internal error" });
     }
 };
 
-// Polling: Frontend gọi để kiểm tra trạng thái thanh toán
 const checkPaymentStatus: RequestHandler = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { orderCode } = req.params;
@@ -262,7 +253,6 @@ const createOrder: RequestHandler = async (req: AuthenticatedRequest, res: Respo
         order: createdOrder,
     };
 
-    // Nếu thanh toán chuyển khoản → trả về QR URL của SePay
     if (paymentMethod === IOrderPayment.Transfer) {
         const qrUrl = buildSePayQrUrl({
             amount: totalPrice,
@@ -285,8 +275,6 @@ const createOrder: RequestHandler = async (req: AuthenticatedRequest, res: Respo
         data: responseData,
     });
 };
-
-// ========== Các handler còn lại giữ nguyên từ file gốc ==========
 
 const getMyOrders: RequestHandler = async (req: AuthenticatedRequest, res: Response) => {
     try {

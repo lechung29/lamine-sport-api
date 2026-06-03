@@ -6,7 +6,7 @@ export interface SePayWebhookPayload {
     transactionDate: string;
     accountNumber: string;
     subAccount: string | null;
-    code: string | null; 
+    code: string | null;
     content: string;
     transferType: "in" | "out";
     description: string;
@@ -16,8 +16,9 @@ export interface SePayWebhookPayload {
     id_transaction: number;
     transferDate?: string;
 }
+
 export const buildSePayContent = (orderCode: string): string => {
-    return `LAMINE${orderCode}`;
+    return `Thanh toan Lamine Sport - ${orderCode}`;
 };
 
 export const buildSePayQrUrl = (params: { amount: number; orderCode: string }): string => {
