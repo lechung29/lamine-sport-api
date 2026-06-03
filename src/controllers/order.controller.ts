@@ -39,6 +39,7 @@ const restoreOrderInventory = async (order: any) => {
 
 const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
     try {
+        console.log("Received SePay webhook:", req.body);
         const authHeader = (req.headers["authorization"] || "") as string;
         const apiKey = authHeader.startsWith("Apikey ") ? authHeader.slice("Apikey ".length).trim() : authHeader.trim();
 
