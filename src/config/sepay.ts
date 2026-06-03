@@ -18,7 +18,7 @@ export interface SePayWebhookPayload {
 }
 
 export const buildSePayContent = (orderCode: string): string => {
-    return `Thanh toan Lamine Sport - ${orderCode}`;
+    return `LAMINE SPORT ${orderCode}`;
 };
 
 export const buildSePayQrUrl = (params: { amount: number; orderCode: string }): string => {

@@ -56,7 +56,7 @@ const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
 
         const content = (payload.content || payload.description || "").toUpperCase().trim();
 
-        const orderCodeMatch = content.match(/LAMINE\s+SPORT\s+([A-Z0-9]+)/i);
+        const orderCodeMatch = content.match(/LAMINE\s+SPORT\s*-\s*([A-Z0-9_]+)/i);
         if (!orderCodeMatch) {
             console.log(`SePay webhook: Không tìm thấy orderCode trong nội dung: "${content}"`);
             return res.status(200).json({ success: true, message: "No order code in content" });
