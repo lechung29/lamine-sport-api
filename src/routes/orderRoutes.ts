@@ -2,7 +2,7 @@
 
 import express from "express";
 import { isAdmin, isLocked, verifyToken } from "../middlewares/auth";
-import { cancelOrder, createOrder, getAllOrders, getDashboardStats, getDetailsOrder, getMyOrders, updateOrdersStatus } from "../controllers/order.controller";
+import { cancelOrder, createOrder, getAllOrders, getDashboardStats, getDetailsOrder, getMyOrders, updateOrdersStatus, sePayWebhook, checkPaymentStatus } from "../controllers/order.controller";
 
 const orderRoutes = express.Router();
 
@@ -13,5 +13,8 @@ orderRoutes.get("/get-all-orders", verifyToken, isAdmin, getAllOrders);
 orderRoutes.put("/update-status", verifyToken, isAdmin, updateOrdersStatus);
 orderRoutes.get("/get-details-order/:orderId", verifyToken, isAdmin, getDetailsOrder);
 orderRoutes.get("/get-dashboard-stats", verifyToken, isAdmin, getDashboardStats);
+
+orderRoutes.post("/sepay-webhook", sePayWebhook);
+orderRoutes.get("/check-payment/:orderCode", verifyToken, checkPaymentStatus);
 
 export default orderRoutes;

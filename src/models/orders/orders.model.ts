@@ -15,6 +15,13 @@ export enum IOrderPayment {
     Transfer,
 }
 
+export enum PaymentStatus {
+    Pending = 1,
+    Paid,
+    Failed,
+    Cancelled,
+}
+
 export interface IOrderItem extends Document {
     product: mongoose.Types.ObjectId;
     selectedColor: ProductBasicColor;
@@ -40,6 +47,9 @@ export interface IOrder extends Document {
         note?: string;
     };
     paymentMethod: IOrderPayment;
+    paymentStatus: PaymentStatus;
+    transactionRef?: string;
+    paidAt?: Date;
     orderStatus: OrderStatus;
 }
 
@@ -64,6 +74,9 @@ const orderSchema = new Schema<IOrder>(
             note: { type: String, required: false },
         },
         paymentMethod: { type: Number, enum: IOrderPayment, required: true },
+        paymentStatus: { type: Number, enum: PaymentStatus, required: true, default: PaymentStatus.Pending },
+        transactionRef: { type: String, required: false },
+        paidAt: { type: Date, required: false },
         totalPrice: { type: Number, required: true, default: 0.0 },
         productsFees: { type: Number, required: true },
         shippingFees: { type: Number, required: true },
@@ -73,7 +86,7 @@ const orderSchema = new Schema<IOrder>(
     },
     {
         timestamps: true,
-    }
+    },
 );
 
 const Orders = mongoose.model<IOrder>("Orders", orderSchema);
