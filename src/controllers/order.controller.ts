@@ -67,11 +67,11 @@ const sePayWebhook: RequestHandler = async (req: Request, res: Response) => {
         const matchedOrder = await Orders.findOne({
             orderCode,
             paymentMethod: IOrderPayment.Transfer,
-            paymentStatus: PaymentStatus.Pending,
+            paymentStatus: PaymentStatus.PendingPayment,
         }).select("orderCode totalPrice paymentStatus _id");
 
         if (!matchedOrder) {
-            console.log(`SePay webhook: Không tìm thấy đơn pending với orderCode "${orderCode}"`);
+            console.log(`SePay webhook: Không tìm thấy đơn pending payment với orderCode "${orderCode}"`);
             return res.status(200).json({ success: true, message: "No matching order found" });
         }
 
