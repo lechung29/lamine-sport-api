@@ -301,7 +301,7 @@ const getMyOrders: RequestHandler = async (req: AuthenticatedRequest, res: Respo
             message: "Lấy danh sách đơn hàng thành công!",
             data: orders.map((order) => {
                 const responseData: any = {
-                    ...order,
+                    ...(order.toObject()),
                 };
                 if (order.paymentMethod === IOrderPayment.Transfer && order.paymentStatus === PaymentStatus.PendingPayment) {
                     const qrUrl = buildSePayQrUrl({
